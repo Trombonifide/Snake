@@ -7,6 +7,7 @@ $(document).ready(function(){
   var d;
   var bait;
   var snake_length = 5;
+  var game_over_text = "You lose";
 
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
@@ -26,6 +27,7 @@ $(document).ready(function(){
     snake_length = 5;
     if(typeof game_loop != "undefined") clearInterval(game_loop);
     game_loop = setInterval(paint, 60);
+    ctx.fillText(game_over_text, 5, h-5);
   }
   init();
 
@@ -63,6 +65,14 @@ $(document).ready(function(){
 
     if(nx == -1 || nx == w/cw || ny == -1 || ny == h/cw || check_collisions(nx, ny, snake_array))
     {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle = "lime";
+      ctx.strokeRect(0,0,w,h);
+      ctx.fillStyle= "lime";
+      ctx.font = "italic 40pt Calibri";
+      ctx.fillText("you lose", 150, 150);
+      ctx.fillText("start again?", 150, 250);
       return;
     }
 
@@ -87,7 +97,9 @@ $(document).ready(function(){
     }
 
     paint_cell(bait.x, bait.y);
+
     var snake_length_text = "ya length:" + snake_length;
+    ctx.font = "20pt Arial";
     ctx.fillText(snake_length_text, 5, h-5);
   }
 
