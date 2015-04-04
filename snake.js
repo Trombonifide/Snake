@@ -47,7 +47,7 @@ $(document).ready(function(){
   }
 
   function paint(){
-    //recolor canvas each frame
+    //recolor canvas each frame to make previous tail go away
     ctx.fillStyle = "black";
     ctx.fillRect(0,0,w,h);
     ctx.strokeStyle = "lime";
@@ -61,7 +61,7 @@ $(document).ready(function(){
     else if (d == "up")ny--;
     else if (d == "down")ny++;
 
-    if(nx == -1 || nx == w/cw || ny == -1 || ny == h/cw)
+    if(nx == -1 || nx == w/cw || ny == -1 || ny == h/cw || check_collisions(nx, ny, snake_array))
     {
       return;
     }
@@ -91,12 +91,22 @@ $(document).ready(function(){
     ctx.fillText(snake_length_text, 5, h-5);
   }
 
-  function paint_cell(x,y)
+  function paint_cell(x, y)
   {
     ctx.fillStyle = "lime";
     ctx.fillRect(x*cw, y*cw, cw, cw);
     ctx.strokeStyle = "black";
     ctx.strokeRect(x*cw, y*cw, cw, cw);
+  }
+
+  function check_collisions(x, y, array)
+  {
+    for(var i = 0; i < array.length; i++)
+    {
+      if(array[i].x == x && array[i].y == y)
+        return true;
+    }
+    return false;
   }
 
   $(document).keydown(function(e){
