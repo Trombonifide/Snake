@@ -6,6 +6,7 @@ $(document).ready(function(){
   var cw = 10;
   var d;
   var bait;
+  var snake_length = 5;
 
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
@@ -22,6 +23,7 @@ $(document).ready(function(){
     d = "right";
     create_snake();
     create_bait();
+    snake_length = 5;
     if(typeof game_loop != "undefined") clearInterval(game_loop);
     game_loop = setInterval(paint, 60);
   }
@@ -67,6 +69,7 @@ $(document).ready(function(){
     if(nx == bait.x && ny == bait.y)
     {
       var tail = {x: nx, y: ny};
+      snake_length++;
       create_bait();
     }
     else
@@ -84,6 +87,8 @@ $(document).ready(function(){
     }
 
     paint_cell(bait.x, bait.y);
+    var snake_length_text = "ya length:" + snake_length;
+    ctx.fillText(snake_length_text, 5, h-5);
   }
 
   function paint_cell(x,y)
