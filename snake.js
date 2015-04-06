@@ -67,8 +67,8 @@ $(document).ready(function(){
 
   function create_bait(){
     bait = {
-      x: Math.round(Math.random()*(w-cw)/cw),
-      y: Math.round(Math.random()*(h-cw)/cw),
+      x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
+      y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
     }
   }
 
