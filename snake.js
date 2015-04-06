@@ -17,6 +17,7 @@ $(document).ready(function(){
   ctx.strokeRect(0,0,w,h);
 
   var snake_array;
+  var wall_array;
 
   function init()
   {
@@ -29,13 +30,38 @@ $(document).ready(function(){
   }
   init();
 
+  function create_walls()
+  {
+    var length = w/cw;
+    var top_array=[];
+    var bottom_array=[];
+    var left_array=[];
+    var right_array=[];
+
+    for(var i = length-1; i>=0; i--)
+    { /// building each wall invidually for flexible adjustments in the future.
+      top_array.push({x:i, y:0});  
+      bottom_array.push({x:i, y:49});
+      left_array.push({x:0, y:i});
+      right_array.push({x:49, y:i});
+    }
+
+    // We should probably build a function what makes holes in the walls programatically, until then:
+    top_array.splice(19,10);
+    bottom_array.splice(19,10);
+    left_array.splice(19,10);
+    right_array.splice(19,10);
+
+    wall_array = top_array.concat(bottom_array, left_array, right_array);
+  }
+
   function create_snake()
   {
     var length = 5;
     snake_array=[];
     for(var i = length-1; i>=0; i--)
     {
-      snake_array.push({x:i, y:0});
+      snake_array.push({x:i, y:1});
     }
   }
 
@@ -53,6 +79,8 @@ $(document).ready(function(){
     ctx.strokeStyle = "lime";
     ctx.strokeRect(0,0,w,h);
 
+    create_walls(); 
+
     var nx = snake_array[0].x;
     var ny = snake_array[0].y;
 
@@ -61,7 +89,13 @@ $(document).ready(function(){
     else if (d == "up")ny--;
     else if (d == "down")ny++;
 
-    if(nx == -1 || nx == w/cw || ny == -1 || ny == h/cw || check_collisions(nx, ny, snake_array))
+    // wrap snake across window borders
+    if (nx == -1)nx=w/cw;
+    else if (nx == w/cw)nx=0;
+    else if (ny == -1)ny=h/cw;
+    else if (ny == h/cw)ny=0;
+ 
+    if(check_collisions(nx, ny, snake_array) || check_collisions(nx, ny, wall_array))
     {
       return;
     }
@@ -86,18 +120,33 @@ $(document).ready(function(){
       paint_cell(c.x, c.y);
     }
 
-    paint_cell(bait.x, bait.y);
+    paint_cell(bait.x, bait.y, "bait");
     var snake_length_text = "ya length:" + snake_length;
     ctx.fillText(snake_length_text, 5, h-5);
+
+    // ///paint the (perimeter) walls
+    for (var i = 0; i < wall_array.length; i++)
+    {
+    paint_cell(wall_array[i].x, wall_array[i].y, "wall");
+    }
   }
 
-  function paint_cell(x, y)
-  {
-    ctx.fillStyle = "lime";
+  function paint_cell(x, y, kind)
+  { 
+    if (kind == "bait")
+    {
+    color = "orange";
+  } else if (kind == "wall") {
+    color = "grey";
+  } else {
+    color = "lime";
+  }
+
+    ctx.fillStyle = color;
     ctx.fillRect(x*cw, y*cw, cw, cw);
     ctx.strokeStyle = "black";
     ctx.strokeRect(x*cw, y*cw, cw, cw);
-  }
+}
 
   function check_collisions(x, y, array)
   {
