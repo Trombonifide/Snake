@@ -26,9 +26,33 @@ $(document).ready(function(){
     create_snake();
     create_bait();
     snake_length = 5;
-    if(typeof game_loop != "undefined") clearInterval(game_loop);
-    game_loop = setInterval(paint, snake_speed);
+    theLoop();
   }
+
+    function pup_timeout(){
+    
+    pup_duration = pup_duration - snake_speed; 
+    
+    if (pup_duration < 1) {
+        snake_speed = 60;
+        pup_duration = 3000;
+        console.log("reset!");
+      } 
+    };
+
+  function theLoop() {
+
+    if (snake_speed != 60) {
+      pup_timeout();
+    };
+
+    setTimeout(function () {
+      paint();
+      theLoop();
+    }, snake_speed);
+
+  }
+
   init();
 
   function create_walls()
@@ -156,8 +180,18 @@ $(document).ready(function(){
 
     if(pup != null && nx == pup.x && ny == pup.y)
     {
-        console.log("yey!")
+      if (pup.kind == "speedPUP") {
+        pup_duration = 3000;
+        snake_speed = 40;
+        console.log("fast!");
         pup = null;
+      } else if (pup.kind == "slowPUP"){
+        pup_duration = 3000;
+        snake_speed = 100;
+        console.log("slow!");
+        pup = null;
+      };
+
     }
 
   }
