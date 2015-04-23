@@ -6,8 +6,9 @@ $(document).ready(function(){
   var cw = 10;
   var d;
   var bait;
+  var pup = null;
   var snake_length = 5;
-
+  var snake_speed = 60;
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
 
@@ -17,6 +18,7 @@ $(document).ready(function(){
   ctx.strokeRect(0,0,w,h);
 
   var snake_array;
+  var wall_array;
 
   function init()
   {
@@ -25,9 +27,34 @@ $(document).ready(function(){
     create_bait();
     snake_length = 5;
     if(typeof game_loop != "undefined") clearInterval(game_loop);
-    game_loop = setInterval(paint, 60);
+    game_loop = setInterval(paint, snake_speed);
   }
   init();
+
+  function create_walls()
+  {
+    var length = w/cw;
+    var top_array=[];
+    var bottom_array=[];
+    var left_array=[];
+    var right_array=[];
+
+    for(var i = length-1; i>=0; i--)
+    { /// building each wall invidually for flexible adjustments in the future.
+      top_array.push({x:i, y:0});  
+      bottom_array.push({x:i, y:49});
+      left_array.push({x:0, y:i});
+      right_array.push({x:49, y:i});
+    }
+
+    // We should probably build a function what makes holes in the walls programatically, until then:
+    top_array.splice(19,10);
+    bottom_array.splice(19,10);
+    left_array.splice(19,10);
+    right_array.splice(19,10);
+
+    wall_array = top_array.concat(bottom_array, left_array, right_array);
+  }
 
   function create_snake()
   {
@@ -35,15 +62,24 @@ $(document).ready(function(){
     snake_array=[];
     for(var i = length-1; i>=0; i--)
     {
-      snake_array.push({x:i, y:0});
+      snake_array.push({x:i, y:1});
     }
   }
 
   function create_bait(){
     bait = {
-      x: Math.round(Math.random()*(w-cw)/cw),
-      y: Math.round(Math.random()*(h-cw)/cw),
+      x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
+      y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
     }
+}
+  function create_Pup(string){
+    if(pup == null){
+    pup = {
+      x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
+      y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
+      kind: string,
+    }
+   }
   }
 
   function paint(){
@@ -53,6 +89,8 @@ $(document).ready(function(){
     ctx.strokeStyle = "lime";
     ctx.strokeRect(0,0,w,h);
 
+    create_walls(); 
+
     var nx = snake_array[0].x;
     var ny = snake_array[0].y;
 
@@ -61,7 +99,13 @@ $(document).ready(function(){
     else if (d == "up")ny--;
     else if (d == "down")ny++;
 
-    if(nx == -1 || nx == w/cw || ny == -1 || ny == h/cw || check_collisions(nx, ny, snake_array))
+    // wrap snake across window borders
+    if (nx == -1)nx=w/cw;
+    else if (nx == w/cw)nx=0;
+    else if (ny == -1)ny=h/cw;
+    else if (ny == h/cw)ny=0;
+ 
+    if(check_collisions(nx, ny, snake_array) || check_collisions(nx, ny, wall_array))
     {
       return;
     }
@@ -86,18 +130,80 @@ $(document).ready(function(){
       paint_cell(c.x, c.y);
     }
 
-    paint_cell(bait.x, bait.y);
+    paint_cell(bait.x, bait.y, "bait");
     var snake_length_text = "ya length:" + snake_length;
     ctx.fillText(snake_length_text, 5, h-5);
+
+    // ///paint the (perimeter) walls
+    for (var i = 0; i < wall_array.length; i++)
+    {
+    paint_cell(wall_array[i].x, wall_array[i].y, "wall");
+    }
+
+    //// powerup tests -- how do you control snake speed?  investigate setInterval
+
+    if (snake_length % 2 == 0) {
+      create_Pup("slowPUP");
+    }
+
+    if (snake_length % 2 != 0) {
+      create_Pup("speedPUP");
+    }
+
+    if (pup != null) {
+      paint_cell(pup.x, pup.y, pup.kind);
+    }
+
+    if(pup != null && nx == pup.x && ny == pup.y)
+    {
+        console.log("yey!")
+        pup = null;
+    }
+
   }
 
-  function paint_cell(x, y)
-  {
-    ctx.fillStyle = "lime";
-    ctx.fillRect(x*cw, y*cw, cw, cw);
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(x*cw, y*cw, cw, cw);
+  function paint_cell(x, y, kind){
+   
+    function triangle(color){
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = "black";    
+      ctx.moveTo(x*cw + 5,y*cw);
+      ctx.lineTo(x*cw + 10, y*cw + 9);
+      ctx.lineTo(x*cw, y*cw + 9);
+      ctx.fill();
+       }
+
+    // bait is circles now, just because.
+    function circ(color){
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x*cw + 5,y*cw + 5,5,0,Math.PI*2,true);
+    ctx.closePath();
+    ctx.fill();
+    }
+
+    function rect(color){ 
+      ctx.fillStyle = color;
+      ctx.fillRect(x*cw, y*cw, cw, cw);
+      ctx.strokeStyle = "black";
+      ctx.strokeRect(x*cw, y*cw, cw, cw);
+    }
+
+  { 
+    if (kind == "bait")
+    { circ("orange");
+  } else if (kind == "wall") {
+    rect("grey");
+  } else if (kind == "speedPUP") {
+    triangle("salmon");
+  } else if (kind == "slowPUP") {
+    triangle("aqua");
+  } else {
+    rect("lime");
   }
+}
+}
 
   function check_collisions(x, y, array)
   {
