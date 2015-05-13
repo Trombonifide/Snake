@@ -9,6 +9,7 @@ $(document).ready(function(){
   var pup = null;
   var snake_length = 5;
   var snake_speed = 60;
+  var d_cache = [null,null,null]; // holds the last three values for d -- currently checking for whipping
 
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
@@ -20,6 +21,23 @@ $(document).ready(function(){
 
   var snake_array;
   var wall_array;
+
+  function smack() {
+    var smk = new Audio("smack.wav");
+    smk.play();
+  }
+
+  function chomp(){
+    var snd = new Audio("chomp.wav"); // buffers automatically when created
+    snd.play();
+  }
+
+  function whip(){
+    var snd = new Audio("whip.wav"); // buffers automatically when created
+    snd.play();
+    pup_duration = 250;
+    snake_speed = 40;
+  }
 
   function init()
   {
@@ -38,19 +56,17 @@ $(document).ready(function(){
         snake_speed = 60;
         pup_duration = 3000;
       }
-    };
+    }
 
   function theLoop() {
-
     if (snake_speed != 60) {
       pup_timeout();
-    };
+    }
 
     setTimeout(function () {
       paint();
       theLoop();
     }, snake_speed);
-
   }
 
   init();
@@ -114,13 +130,8 @@ $(document).ready(function(){
    }
   }
 
-  function chomp(){
-    var snd = new Audio("VUX-Bite.wav"); // buffers automatically when created
-    snd.play();
-  }
-
   function paint(){
-    //recolor canvas each frame to make previous tail go away
+//recolor canvas each frame to make previous tail go away
     ctx.fillStyle = "black";
     ctx.fillRect(0,0,w,h);
     ctx.strokeStyle = "lime";
@@ -132,12 +143,21 @@ $(document).ready(function(){
     var nx = snake_array[0].x;
     var ny = snake_array[0].y;
 
+// the D pad
     if (d == "right")nx++;
     else if (d == "left")nx--;
     else if (d == "up")ny--;
     else if (d == "down")ny++;
 
-    // wrap snake across window borders
+// update directional input cache and check for whipping
+    d_cache.shift();
+    d_cache.push(d);
+
+    if(d_cache[0] !== d_cache[1] && d_cache[1] !== d_cache[2] && d_cache[2] !== d_cache[0]){
+      whip();
+    }
+
+// wrap snake across window borders
     if (nx == -1)nx=w/cw;
     else if (nx == w/cw)nx=0;
     else if (ny == -1)ny=h/cw;
@@ -148,6 +168,7 @@ $(document).ready(function(){
       return;
     }
 
+// Is that snake eating some bait or what?
     if(nx == bait.x && ny == bait.y)
     {
       var tail = {x: nx, y: ny};
@@ -171,13 +192,13 @@ $(document).ready(function(){
 
     paint_cell(bait.x, bait.y, "bait");
 
-    // ///paint the (perimeter) walls
+// paint the (perimeter) walls
     for (var i = 0; i < wall_array.length; i++)
     {
     paint_cell(wall_array[i].x, wall_array[i].y, "wall");
     }
 
-    //// powerup tests
+// powerups!  make them cool.
 
     if (snake_length % 2 == 0) {
       create_Pup("slowPUP");
@@ -206,13 +227,6 @@ $(document).ready(function(){
       };
 
     }
-
-  }
-
-  function smack() {
-    var smk = new Audio("smack.wav");
-    smk.play();
-  }
 
   function paint_cell(x, y, kind){
 
@@ -275,4 +289,5 @@ $(document).ready(function(){
     else if(key == "40" && d != "up")d = "down";
   })
 
+  }
 })
