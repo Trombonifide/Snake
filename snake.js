@@ -9,6 +9,7 @@ $(document).ready(function(){
   var pup = null;
   var snake_length = 5;
   var snake_speed = 60;
+
   canvas.setAttribute("tabindex", "0");
   canvas.focus();
 
@@ -36,7 +37,6 @@ $(document).ready(function(){
     if (pup_duration < 1) {
         snake_speed = 60;
         pup_duration = 3000;
-        console.log("reset!");
       } 
     };
 
@@ -90,6 +90,13 @@ $(document).ready(function(){
     }
   }
 
+  function score(){
+    var snake_length_text = "ya length:" + snake_length; 
+    ctx.fillStyle = "white";
+    ctx.font = "20px Helvetica";      
+    ctx.fillText(snake_length_text, 15, h - 17);
+  }
+
   function create_bait(){
     bait = {
       x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
@@ -106,6 +113,11 @@ $(document).ready(function(){
    }
   }
 
+  function chomp(){
+    var snd = new Audio("VUX-Bite.wav"); // buffers automatically when created
+    snd.play();
+  }
+
   function paint(){
     //recolor canvas each frame to make previous tail go away
     ctx.fillStyle = "black";
@@ -113,6 +125,7 @@ $(document).ready(function(){
     ctx.strokeStyle = "lime";
     ctx.strokeRect(0,0,w,h);
 
+    score();
     create_walls(); 
 
     var nx = snake_array[0].x;
@@ -138,6 +151,7 @@ $(document).ready(function(){
     {
       var tail = {x: nx, y: ny};
       snake_length++;
+      chomp();
       create_bait();
     }
     else
@@ -155,8 +169,6 @@ $(document).ready(function(){
     }
 
     paint_cell(bait.x, bait.y, "bait");
-    var snake_length_text = "ya length:" + snake_length;
-    ctx.fillText(snake_length_text, 5, h-5);
 
     // ///paint the (perimeter) walls
     for (var i = 0; i < wall_array.length; i++)
@@ -164,7 +176,7 @@ $(document).ready(function(){
     paint_cell(wall_array[i].x, wall_array[i].y, "wall");
     }
 
-    //// powerup tests -- how do you control snake speed?  investigate setInterval
+    //// powerup tests
 
     if (snake_length % 2 == 0) {
       create_Pup("slowPUP");
@@ -202,7 +214,7 @@ $(document).ready(function(){
       ctx.beginPath();
       ctx.fillStyle = color;
       ctx.strokeStyle = "black";    
-      ctx.moveTo(x*cw + 5,y*cw);
+      ctx.moveTo(x*cw + 5, y*cw);
       ctx.lineTo(x*cw + 10, y*cw + 9);
       ctx.lineTo(x*cw, y*cw + 9);
       ctx.fill();
