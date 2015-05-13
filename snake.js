@@ -30,14 +30,14 @@ $(document).ready(function(){
   }
 
     function pup_timeout(){
-    
-    pup_duration = pup_duration - snake_speed; 
-    
+
+    pup_duration = pup_duration - snake_speed;
+
     if (pup_duration < 1) {
         snake_speed = 60;
         pup_duration = 3000;
         console.log("reset!");
-      } 
+      }
     };
 
   function theLoop() {
@@ -65,7 +65,7 @@ $(document).ready(function(){
 
     for(var i = length-1; i>=0; i--)
     { /// building each wall invidually for flexible adjustments in the future.
-      top_array.push({x:i, y:0});  
+      top_array.push({x:i, y:0});
       bottom_array.push({x:i, y:49});
       left_array.push({x:0, y:i});
       right_array.push({x:49, y:i});
@@ -103,6 +103,7 @@ $(document).ready(function(){
       y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
       kind: string,
     }
+    smack();
    }
   }
 
@@ -113,7 +114,7 @@ $(document).ready(function(){
     ctx.strokeStyle = "lime";
     ctx.strokeRect(0,0,w,h);
 
-    create_walls(); 
+    create_walls();
 
     var nx = snake_array[0].x;
     var ny = snake_array[0].y;
@@ -128,7 +129,7 @@ $(document).ready(function(){
     else if (nx == w/cw)nx=0;
     else if (ny == -1)ny=h/cw;
     else if (ny == h/cw)ny=0;
- 
+
     if(check_collisions(nx, ny, snake_array) || check_collisions(nx, ny, wall_array))
     {
       return;
@@ -196,12 +197,17 @@ $(document).ready(function(){
 
   }
 
+  function smack() {
+    var smk = new Audio("smack.wav");
+    smk.play();
+  }
+
   function paint_cell(x, y, kind){
-   
+
     function triangle(color){
       ctx.beginPath();
       ctx.fillStyle = color;
-      ctx.strokeStyle = "black";    
+      ctx.strokeStyle = "black";
       ctx.moveTo(x*cw + 5,y*cw);
       ctx.lineTo(x*cw + 10, y*cw + 9);
       ctx.lineTo(x*cw, y*cw + 9);
@@ -217,14 +223,14 @@ $(document).ready(function(){
     ctx.fill();
     }
 
-    function rect(color){ 
+    function rect(color){
       ctx.fillStyle = color;
       ctx.fillRect(x*cw, y*cw, cw, cw);
       ctx.strokeStyle = "black";
       ctx.strokeRect(x*cw, y*cw, cw, cw);
     }
 
-  { 
+  {
     if (kind == "bait")
     { circ("orange");
   } else if (kind == "wall") {
