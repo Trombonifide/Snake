@@ -21,6 +21,7 @@ $(document).ready(function(){
 
   var snake_array;
   var wall_array;
+  var blocks_array = [];
 
   function smack() {
     var smk = new Audio("smack.wav");
@@ -28,15 +29,15 @@ $(document).ready(function(){
   }
 
   function chomp(){
-    var snd = new Audio("chomp.wav"); // buffers automatically when created
+    var snd = new Audio("chomp.wav");
     snd.play();
   }
 
   function whip(){
-    var snd = new Audio("whip.wav"); // buffers automatically when created
+    var snd = new Audio("whip.wav");
     snd.play();
     pup_duration = 250;
-    snake_speed = 40;
+    snake_speed = snake_speed - 20;
   }
 
   function init()
@@ -46,6 +47,14 @@ $(document).ready(function(){
     create_bait();
     snake_length = 5;
     theLoop();
+    create_walls(); 
+
+    //Draw obstacles in init() or you'll slow shit down.
+    // create_block(21,21,6); 
+    for(var i = 5; i < 50; i = i + 5){ 
+      create_segment(i,i,5,"h");
+    }
+
   }
 
     function pup_timeout(){
@@ -99,7 +108,7 @@ $(document).ready(function(){
   function create_snake()
   {
     var length = 5;
-    snake_array=[];
+    snake_array =[];
     for(var i = length-1; i>=0; i--)
     {
       snake_array.push({x:i, y:1});
@@ -116,18 +125,73 @@ $(document).ready(function(){
   function create_bait(){
     bait = {
       x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
-      y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
+      y: Math.floor(Math.random()*(h-cw*2)/cw + 1)
+    };
+
+    // bait can't spawn on blocks
+    if (blocks_array.indexOf(bait) >= 0){
+      create_bait();
     }
+
+    random_block();   
 }
+
   function create_Pup(string){
-    if(pup == null){
+    if(pup === null){
     pup = {
       x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
       y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
       kind: string,
+    };
+
+    // pups can't spawn on blocks
+    if (blocks_array.indexOf(bait) >= 0){
+      create_bait();
     }
+
     smack();
    }
+  }
+
+  function create_segment(a,b,size,orientation){
+    var o = undefined || orientation;
+
+    if(o === "v"){
+      for (var i = 0; i <= size; i++) {  
+        var c = a + i;
+        blocks_array.push({x: b, y: c});     
+      }
+    } else if (o === "d"){
+      for (var i = 0; i <= size; i++) {  
+        var c = a + i;
+        var d = b + i;
+        blocks_array.push({x: d, y: c});     
+      }
+    } else if (o === "h") {
+      for (var i = 0; i <= size; i++) {  
+        var c = a + i;
+        blocks_array.push({x: c, y: b});     
+        } 
+    } 
+  }
+
+  function create_block(a,b,size){
+    
+    for (var i = size; i >= 0; i--) {
+      var y = b + i;
+      create_segment(a,y,size,"h");
+    }
+
+  }
+
+  function random_block(){
+    
+    block = {
+      x: Math.floor(Math.random()*(w-cw*2)/cw + 1),
+      y: Math.floor(Math.random()*(h-cw*2)/cw + 1),
+    };
+
+    blocks_array.push(block);
   }
 
   function paint(){
@@ -138,7 +202,6 @@ $(document).ready(function(){
     ctx.strokeRect(0,0,w,h);
 
     score();
-    create_walls();
 
     var nx = snake_array[0].x;
     var ny = snake_array[0].y;
@@ -163,7 +226,7 @@ $(document).ready(function(){
     else if (ny == -1)ny=h/cw;
     else if (ny == h/cw)ny=0;
 
-    if(check_collisions(nx, ny, snake_array) || check_collisions(nx, ny, wall_array))
+    if(check_collisions(nx, ny, snake_array) || check_collisions(nx, ny, wall_array) || check_collisions(nx, ny, blocks_array))
     {
       return;
     }
@@ -192,27 +255,31 @@ $(document).ready(function(){
 
     paint_cell(bait.x, bait.y, "bait");
 
+// painting blocks
+    for (var i = 0; i < blocks_array.length; i++){
+      paint_cell(blocks_array[i].x, blocks_array[i].y, "wall");
+    }
+
 // paint the (perimeter) walls
-    for (var i = 0; i < wall_array.length; i++)
-    {
-    paint_cell(wall_array[i].x, wall_array[i].y, "wall");
+    for (var i = 0; i < wall_array.length; i++){
+      paint_cell(wall_array[i].x, wall_array[i].y, "wall");
     }
 
 // powerups!  make them cool.
 
-    if (snake_length % 2 == 0) {
+    if (snake_length % 2 === 0) {
       create_Pup("slowPUP");
     }
 
-    if (snake_length % 2 != 0) {
+    if (snake_length % 2 !== 0) {
       create_Pup("speedPUP");
     }
 
-    if (pup != null) {
+    if (pup !== null) {
       paint_cell(pup.x, pup.y, pup.kind);
     }
 
-    if(pup != null && nx == pup.x && ny == pup.y)
+    if(pup !== null && nx == pup.x && ny == pup.y)
     {
       if (pup.kind == "speedPUP") {
         pup_duration = 3000;
@@ -224,7 +291,7 @@ $(document).ready(function(){
         snake_speed = 100;
         console.log("slow!");
         pup = null;
-      };
+      }
 
     }
 
@@ -287,7 +354,7 @@ $(document).ready(function(){
     else if(key == "38" && d != "down")d = "up";
     else if(key == "39" && d != "left")d = "right";
     else if(key == "40" && d != "up")d = "down";
-  })
+  });
 
   }
-})
+});
