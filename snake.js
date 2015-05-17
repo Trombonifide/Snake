@@ -40,6 +40,13 @@ $(document).ready(function(){
     snake_speed = snake_speed - 20;
   }
 
+  function fart(){
+  var snd = new Audio("fart.mp3");
+  snd.play();
+  }
+
+
+
   function init()
   {
     d = "right";
@@ -51,7 +58,7 @@ $(document).ready(function(){
 
     //Draw obstacles in init() or you'll slow shit down.
     // create_block(21,21,6); 
-    for(var i = 5; i < 50; i = i + 5){ 
+    for(var i = 4; i < 40; i = i + 5){ 
       create_segment(i,i,5,"h");
     }
 
@@ -59,7 +66,7 @@ $(document).ready(function(){
 
     function pup_timeout(){
 
-    pup_duration = pup_duration - snake_speed;
+    var pup_duration = pup_duration - snake_speed;
 
     if (pup_duration < 1) {
         snake_speed = 60;
@@ -228,7 +235,8 @@ $(document).ready(function(){
 
     if(check_collisions(nx, ny, snake_array) || check_collisions(nx, ny, wall_array) || check_collisions(nx, ny, blocks_array))
     {
-      return;
+      fart();
+
     }
 
 // Is that snake eating some bait or what?
